@@ -1,0 +1,13 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gluster-heketi-elasticsearch 
+provisioner: kubernetes.io/glusterfs
+reclaimPolicy: Retain
+parameters:
+  resturl: "http://<heketi-server-host>:<heketi-server-port>"
+  restuser: ""
+  clusterid: ""
+  gidMin: "40000"
+  gidMax: "50000"
+  volumetype: "replicate:3"
