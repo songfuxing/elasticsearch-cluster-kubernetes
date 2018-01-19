@@ -7,7 +7,7 @@ data节点：3个
 client节点：2个
 ```
 ## es的docker镜像
-es镜像基于5.6.4版本，并打入了结巴分词工具。靠看[`es-images`](es-images)
+es镜像基于5.6.4版本，并打入了结巴分词工具。详情查看[`es-images`](es-images)
 
 ## kubernetes的数据持久化方案
 在k8s中，为了增强数据可用性，master节点和data节点的部署使用有状态的[`StatefulSet`](https://kubernetes.io/docs/concepts/abstractions/controllers/statefulsets/)，而不是无状态的deployment。stateful状态的pod如果失败，将会自动救活和重启，而不是重新部署pod。这样就可以保证数据在pod重启之后不会丢失。在数据层面，使用网络存储的方式保存数据，把k8s中的数据存储到远程的glusterfs中。创建步骤如下：
