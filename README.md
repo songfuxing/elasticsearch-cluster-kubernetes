@@ -1,15 +1,20 @@
-# Elasticsearch 集群在k8s中的高可用部署，以及数据持久化方案
-## elasticsearch集群部署方案
+# elasticsearch-k8s-glusterfs-heketi
+在k8s中部署elasticsearch集群有两个难点，1、服务高可用，2、数据持久化。
+
+## elasticsearch集群高可用部署方案
 elasticsearch使用单一角色进行部署，使用单一角色的好处是：增强es集群的稳定性、可用性，以及便于维护。
 ```
 master节点：3个
 data节点：3个
 client节点：2个
 ```
+并且设置pod排斥性调度，使同一角色的pod尽量分布在不同node上。
+
 ## es的docker镜像
-es镜像基于5.6.4版本，并打入了结巴分词工具。详情查看[`es-images`](es-images)
+es镜像基于5.6.4版本，进行了两个方面的修改：1、打入了结巴分词工具。2、设置服务发现域名(elasticsearch-discovery)。详情查看[`es-images`](es-images)
 
 ## kubernetes的数据持久化方案
+使用独立的Glusterfs集群存储数据，具体的安装配置参考[`glusterfs-heketi`](glusterfs-heketi)。
 在k8s中，为了增强数据可用性，master节点和data节点的部署使用有状态的[`StatefulSet`](https://kubernetes.io/docs/concepts/abstractions/controllers/statefulsets/)，而不是无状态的deployment。stateful状态的pod如果失败，将会自动救活和重启，而不是重新部署pod。这样就可以保证数据在pod重启之后不会丢失。在数据层面，使用网络存储的方式保存数据，把k8s中的数据存储到远程的glusterfs中。创建步骤如下：
 - 创建[`StorageClass`](http://blog.kubernetes.io/2016/10/dynamic-provisioning-and-storage-in-kubernetes.html)，自动为statefulset中的pod申请pvc. 同时向glusterfs集群申请volume。参考[`glusterfs-storageclass.yaml`](gluster-storage-class.yaml)
 - 创建普通服务，用于管理服务发现[`es-discovery-svc.yaml`](es-discovery-svc.yaml),以及维护es-client节点状态，对外提供api[`es-svc.yaml`](es-svc.yaml)
